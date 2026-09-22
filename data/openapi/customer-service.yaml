@@ -1,0 +1,218 @@
+openapi: "3.0.0"
+info:
+  title: Customer Service
+  version: "1.0.0"
+  description: Manages customer registration, profiles, and saved addresses for the ShopCo platform.
+servers:
+  - url: /api/v1
+paths:
+  /customers:
+    post:
+      summary: Register a new customer
+      description: Creates a new customer account. The email address must be unique across the platform. A verification email is sent via Notification Service after successful registration.
+      tags: [customers]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password, firstName, lastName]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                phoneNumber:
+                  type: string
+      responses:
+        "201":
+          description: Customer created — verification email sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        "409":
+          description: Email already registered
+  /customers/{customerId}:
+    get:
+      summary: Get customer profile
+      description: Retrieves the full customer profile including contact details and account status. Does not include saved payment methods (use Payment Service) or order history (use Order Service).
+      tags: [customers]
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          description: UUID of the customer
+          schema:
+            type: string
+            format: uuid
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Customer profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        "404":
+          description: Customer not found
+    put:
+      summary: Update customer profile
+      description: Updates editable fields of a customer profile. Email changes require re-verification. Password changes invalidate all active sessions.
+      tags: [customers]
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                phoneNumber:
+                  type: string
+                email:
+                  type: string
+                  format: email
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Updated customer profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+  /customers/{customerId}/addresses:
+    get:
+      summary: List customer saved addresses
+      description: Returns all saved shipping addresses for a customer. The primary address is flagged with isPrimary=true.
+      tags: [customers, addresses]
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of saved addresses
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Address'
+    post:
+      summary: Add a new shipping address
+      description: Adds a new shipping address to the customer's saved addresses. If isPrimary is true, the existing primary address is demoted.
+      tags: [customers, addresses]
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddressInput'
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Address saved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Address'
+components:
+  schemas:
+    Customer:
+      type: object
+      properties:
+        customerId:
+          type: string
+          format: uuid
+        email:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        phoneNumber:
+          type: string
+        emailVerified:
+          type: boolean
+        accountStatus:
+          type: string
+          enum: [active, suspended, pending_verification]
+        createdAt:
+          type: string
+          format: date-time
+    Address:
+      type: object
+      properties:
+        addressId:
+          type: string
+        line1:
+          type: string
+        line2:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        postalCode:
+          type: string
+        country:
+          type: string
+        isPrimary:
+          type: boolean
+    AddressInput:
+      type: object
+      required: [line1, city, state, postalCode, country]
+      properties:
+        line1:
+          type: string
+        line2:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        postalCode:
+          type: string
+        country:
+          type: string
+        isPrimary:
+          type: boolean
+          default: false
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

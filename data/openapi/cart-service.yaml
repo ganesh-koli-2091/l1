@@ -1,0 +1,218 @@
+openapi: "3.0.0"
+info:
+  title: Cart Service
+  version: "1.0.0"
+  description: Manages shopping cart operations including adding/removing items and triggering checkout.
+servers:
+  - url: /api/v1
+paths:
+  /cart/{customerId}:
+    get:
+      summary: Get active cart for a customer
+      description: Returns the customer's current active cart with all items, quantities, and a running total. If the customer has no active cart, returns an empty cart object (not 404).
+      tags: [cart]
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          description: UUID of the customer
+          schema:
+            type: string
+            format: uuid
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current cart (may be empty)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+  /cart/{customerId}/items:
+    post:
+      summary: Add item to cart
+      description: Adds a product to the customer's cart. If the product is already in the cart, increments the quantity. Calls Inventory Service to verify available stock before adding. Returns the updated cart.
+      tags: [cart]
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [productId, quantity]
+              properties:
+                productId:
+                  type: string
+                  format: uuid
+                quantity:
+                  type: integer
+                  minimum: 1
+                variantId:
+                  type: string
+                  description: Required if the product has variants (e.g. size, colour)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Item added — updated cart returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+        "409":
+          description: Insufficient stock
+  /cart/{customerId}/items/{productId}:
+    delete:
+      summary: Remove item from cart
+      description: Removes an item entirely from the cart regardless of quantity. To reduce quantity without removing, use PATCH on this endpoint.
+      tags: [cart]
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Item removed — updated cart returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+    patch:
+      summary: Update item quantity in cart
+      description: Updates the quantity of a specific item in the cart. Set quantity to 0 to remove the item. Validates against available stock.
+      tags: [cart]
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [quantity]
+              properties:
+                quantity:
+                  type: integer
+                  minimum: 0
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Quantity updated — updated cart returned
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+  /cart/{customerId}/checkout:
+    post:
+      summary: Initiate checkout from cart
+      description: Validates the cart, reserves inventory, calculates final totals including tax, and calls Order Service to create the order. This is the checkout trigger — it does not take payment details; those come from the customer's saved payment methods.
+      tags: [cart]
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [paymentMethodId, shippingAddressId, shippingMethod]
+              properties:
+                paymentMethodId:
+                  type: string
+                shippingAddressId:
+                  type: string
+                shippingMethod:
+                  type: string
+                promoCode:
+                  type: string
+      security:
+        - bearerAuth: []
+      responses:
+        "201":
+          description: Order created — returns the new order ID
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  orderId:
+                    type: string
+                    format: uuid
+                  totalAmount:
+                    type: number
+        "409":
+          description: One or more items out of stock or cart is empty
+components:
+  schemas:
+    Cart:
+      type: object
+      properties:
+        cartId:
+          type: string
+        customerId:
+          type: string
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              productId:
+                type: string
+              productName:
+                type: string
+              variantId:
+                type: string
+                nullable: true
+              quantity:
+                type: integer
+              unitPrice:
+                type: number
+              lineTotal:
+                type: number
+        subtotal:
+          type: number
+        itemCount:
+          type: integer
+        updatedAt:
+          type: string
+          format: date-time
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

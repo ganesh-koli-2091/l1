@@ -1,0 +1,206 @@
+openapi: "3.0.0"
+info:
+  title: Payment Service
+  version: "1.0.0"
+  description: Handles payment processing, payment status retrieval, and refunds for ShopCo orders.
+servers:
+  - url: /api/v1
+paths:
+  /payments:
+    post:
+      summary: Process a payment charge
+      description: Initiates a payment charge against a saved payment method. Called automatically by Order Service when an order is created — do not call this directly for order payments. Use it for standalone charges or subscription billing.
+      tags: [payments]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [customerId, paymentMethodId, amount, currency, orderId]
+              properties:
+                customerId:
+                  type: string
+                  format: uuid
+                paymentMethodId:
+                  type: string
+                  description: ID of the saved payment method to charge
+                amount:
+                  type: number
+                  description: Amount to charge in the smallest currency unit (cents for USD)
+                currency:
+                  type: string
+                  default: USD
+                orderId:
+                  type: string
+                  format: uuid
+                  description: The order this payment is for — used for idempotency
+                description:
+                  type: string
+      responses:
+        "201":
+          description: Payment initiated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        "402":
+          description: Payment declined
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                  declineCode:
+                    type: string
+                    description: Card network decline code (e.g. insufficient_funds, card_expired)
+  /payments/{paymentId}:
+    get:
+      summary: Get payment status
+      description: Returns the current status of a payment and its full transaction history. Poll this endpoint to check whether a payment has settled.
+      tags: [payments]
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          description: UUID of the payment transaction
+          schema:
+            type: string
+            format: uuid
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Payment details and status
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Payment'
+        "404":
+          description: Payment not found
+  /payments/{paymentId}/refund:
+    post:
+      summary: Issue a refund
+      description: Issues a full or partial refund for a captured payment. Partial refunds are supported by specifying an amount less than the original charge. Refunds take 5–10 business days to appear on the customer's statement.
+      tags: [payments, refunds]
+      parameters:
+        - name: paymentId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                amount:
+                  type: number
+                  description: Refund amount. Omit for full refund.
+                reason:
+                  type: string
+                  enum: [customer_request, defective_product, fraudulent, duplicate_charge]
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Refund initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Refund'
+        "409":
+          description: Payment cannot be refunded (already refunded or not captured)
+  /payments/methods/{customerId}:
+    get:
+      summary: List saved payment methods for a customer
+      description: Returns all saved payment methods (cards, wallets) for a customer. Card numbers are masked — only last 4 digits shown.
+      tags: [payments]
+      parameters:
+        - name: customerId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of saved payment methods
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PaymentMethod'
+components:
+  schemas:
+    Payment:
+      type: object
+      properties:
+        paymentId:
+          type: string
+          format: uuid
+        orderId:
+          type: string
+        customerId:
+          type: string
+        amount:
+          type: number
+        currency:
+          type: string
+        status:
+          type: string
+          enum: [pending, captured, failed, refunded, partially_refunded]
+        declineCode:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+    Refund:
+      type: object
+      properties:
+        refundId:
+          type: string
+        paymentId:
+          type: string
+        amount:
+          type: number
+        status:
+          type: string
+          enum: [pending, processed]
+        createdAt:
+          type: string
+          format: date-time
+    PaymentMethod:
+      type: object
+      properties:
+        paymentMethodId:
+          type: string
+        type:
+          type: string
+          enum: [card, paypal, apple_pay, google_pay]
+        last4:
+          type: string
+        brand:
+          type: string
+        expiryMonth:
+          type: integer
+        expiryYear:
+          type: integer
+        isDefault:
+          type: boolean
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

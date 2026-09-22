@@ -1,0 +1,139 @@
+openapi: "3.0.0"
+info:
+  title: Auth Service
+  version: "1.0.0"
+  description: Handles JWT-based authentication for the ShopCo platform. All other services validate tokens issued by this service.
+servers:
+  - url: /api/v1
+paths:
+  /auth/login:
+    post:
+      summary: Authenticate a customer and get JWT tokens
+      description: Authenticates a customer with email and password. Returns a short-lived access token (15 minutes) and a long-lived refresh token (30 days). Store the refresh token securely — it is used to obtain new access tokens without re-authentication.
+      tags: [auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        "200":
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPair'
+        "401":
+          description: Invalid email or password
+        "403":
+          description: Account suspended or email not verified
+  /auth/refresh:
+    post:
+      summary: Refresh an expired access token
+      description: Exchanges a valid refresh token for a new access token and refresh token. The old refresh token is invalidated. Call this when your access token expires (HTTP 401 from any service) before redirecting to login.
+      tags: [auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        "200":
+          description: New token pair issued
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPair'
+        "401":
+          description: Refresh token expired or invalid — user must log in again
+  /auth/logout:
+    post:
+      summary: Invalidate the current session
+      description: Invalidates the refresh token, ending the session. The access token remains technically valid until its 15-minute expiry but will be rejected by the token blacklist check on all services.
+      tags: [auth]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [refreshToken]
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        "204":
+          description: Session ended — no content returned
+  /auth/validate:
+    post:
+      summary: Validate a JWT access token
+      description: Validates an access token and returns the decoded claims. Used by other microservices to verify tokens without sharing the signing secret. Returns 200 with claims if valid, 401 if expired or tampered.
+      tags: [auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token:
+                  type: string
+      responses:
+        "200":
+          description: Token valid — claims returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  customerId:
+                    type: string
+                  email:
+                    type: string
+                  roles:
+                    type: array
+                    items:
+                      type: string
+                  expiresAt:
+                    type: string
+                    format: date-time
+        "401":
+          description: Token invalid or expired
+components:
+  schemas:
+    TokenPair:
+      type: object
+      properties:
+        accessToken:
+          type: string
+          description: JWT access token — include as Authorization Bearer header on all API calls
+        refreshToken:
+          type: string
+          description: Opaque refresh token — store securely, do not expose to browser
+        expiresIn:
+          type: integer
+          description: Access token lifetime in seconds (900 = 15 minutes)
+        tokenType:
+          type: string
+          default: Bearer
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

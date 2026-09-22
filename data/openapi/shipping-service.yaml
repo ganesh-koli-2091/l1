@@ -1,0 +1,198 @@
+openapi: "3.0.0"
+info:
+  title: Shipping Service
+  version: "1.0.0"
+  description: Manages shipment creation, tracking, and shipping rate quotes for ShopCo orders.
+servers:
+  - url: /api/v1
+paths:
+  /shipping/rates:
+    post:
+      summary: Get shipping rate quotes
+      description: Returns available shipping options and costs for a given destination and package weight. Call this during checkout to show the customer shipping options before order creation.
+      tags: [shipping]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [destinationPostalCode, destinationCountry, weightKg]
+              properties:
+                destinationPostalCode:
+                  type: string
+                destinationCountry:
+                  type: string
+                  description: ISO 3166-1 alpha-2 country code (e.g. US, CA, GB)
+                weightKg:
+                  type: number
+                  description: Total package weight in kilograms
+                dimensionsCm:
+                  type: object
+                  properties:
+                    length:
+                      type: number
+                    width:
+                      type: number
+                    height:
+                      type: number
+      responses:
+        "200":
+          description: Available shipping options with costs
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ShippingRate'
+  /shipping/shipments:
+    post:
+      summary: Create a shipment for an order
+      description: Creates a shipment record and generates a shipping label. Called automatically by Order Service when an order transitions to processing status. Returns the tracking number for the shipment.
+      tags: [shipping]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [orderId, shippingMethod, destinationAddressId]
+              properties:
+                orderId:
+                  type: string
+                  format: uuid
+                shippingMethod:
+                  type: string
+                  description: Shipping method code from /shipping/rates response
+                destinationAddressId:
+                  type: string
+      responses:
+        "201":
+          description: Shipment created and label generated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shipment'
+  /shipping/shipments/{trackingNumber}:
+    get:
+      summary: Track a shipment by tracking number
+      description: Returns the current location and status of a shipment using its tracking number. Includes full event history showing each checkpoint the package passed through.
+      tags: [shipping]
+      parameters:
+        - name: trackingNumber
+          in: path
+          required: true
+          description: The carrier tracking number returned when the shipment was created
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current tracking status and event history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TrackingInfo'
+        "404":
+          description: Tracking number not found
+  /shipping/orders/{orderId}:
+    get:
+      summary: Get shipment details by order ID
+      description: Returns the shipment associated with an order, including tracking number, carrier, and current status. Use this when you have an orderId and need to find its tracking information.
+      tags: [shipping]
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Shipment details for the order
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Shipment'
+        "404":
+          description: No shipment found for this order
+components:
+  schemas:
+    ShippingRate:
+      type: object
+      properties:
+        method:
+          type: string
+          description: Method code to use when creating a shipment
+        carrier:
+          type: string
+        serviceName:
+          type: string
+        estimatedDays:
+          type: integer
+        cost:
+          type: number
+        currency:
+          type: string
+    Shipment:
+      type: object
+      properties:
+        shipmentId:
+          type: string
+        orderId:
+          type: string
+        trackingNumber:
+          type: string
+        carrier:
+          type: string
+        status:
+          type: string
+          enum: [label_created, picked_up, in_transit, out_for_delivery, delivered, failed_delivery]
+        labelUrl:
+          type: string
+        estimatedDelivery:
+          type: string
+          format: date
+        createdAt:
+          type: string
+          format: date-time
+    TrackingInfo:
+      type: object
+      properties:
+        trackingNumber:
+          type: string
+        carrier:
+          type: string
+        currentStatus:
+          type: string
+        currentLocation:
+          type: string
+        estimatedDelivery:
+          type: string
+          format: date
+        events:
+          type: array
+          items:
+            type: object
+            properties:
+              timestamp:
+                type: string
+                format: date-time
+              status:
+                type: string
+              location:
+                type: string
+              description:
+                type: string
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

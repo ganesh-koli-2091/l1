@@ -1,0 +1,150 @@
+openapi: "3.0.0"
+info:
+  title: Inventory Service
+  version: "1.0.0"
+  description: Manages product stock levels, reservations, and inventory adjustments.
+servers:
+  - url: /api/v1
+paths:
+  /inventory/{productId}:
+    get:
+      summary: Check stock level for a product
+      description: Returns the current available stock quantity for a product. Available stock = total stock minus reserved stock. Call this before allowing a customer to add an item to cart.
+      tags: [inventory]
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          description: UUID of the product to check stock for
+          schema:
+            type: string
+            format: uuid
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Current stock levels
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  productId:
+                    type: string
+                  totalStock:
+                    type: integer
+                  reservedStock:
+                    type: integer
+                  availableStock:
+                    type: integer
+                  warehouseLocation:
+                    type: string
+                  lowStockThreshold:
+                    type: integer
+                  isLowStock:
+                    type: boolean
+        "404":
+          description: Product not tracked in inventory
+  /inventory/{productId}/reserve:
+    post:
+      summary: Reserve stock for an order
+      description: Temporarily reserves a quantity of stock when a customer begins checkout. Reservation expires after 15 minutes if the order is not completed. Called automatically by Cart Service at checkout — do not call directly for orders.
+      tags: [inventory]
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [quantity, cartId]
+              properties:
+                quantity:
+                  type: integer
+                  minimum: 1
+                cartId:
+                  type: string
+                  description: Cart ID this reservation is for — used to release it if cart is abandoned
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Stock reserved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  reservationId:
+                    type: string
+                  expiresAt:
+                    type: string
+                    format: date-time
+        "409":
+          description: Insufficient available stock
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  availableStock:
+                    type: integer
+                  requestedQuantity:
+                    type: integer
+  /inventory/{productId}/adjust:
+    post:
+      summary: Adjust inventory stock level
+      description: Manually adjusts the total stock level for a product. Use positive delta to add stock (e.g. new shipment received), negative delta to write off stock (e.g. damage). Requires INVENTORY_ADMIN role.
+      tags: [inventory]
+      parameters:
+        - name: productId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [delta, reason]
+              properties:
+                delta:
+                  type: integer
+                  description: Positive to increase stock, negative to decrease
+                reason:
+                  type: string
+                  enum: [new_shipment, damage_write_off, returns, correction]
+                notes:
+                  type: string
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Inventory adjusted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  productId:
+                    type: string
+                  previousStock:
+                    type: integer
+                  newStock:
+                    type: integer
+                  delta:
+                    type: integer
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

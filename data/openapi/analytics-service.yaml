@@ -1,0 +1,168 @@
+openapi: "3.0.0"
+info:
+  title: Analytics Service
+  version: "1.0.0"
+  description: Provides reporting and analytics endpoints for sales, product performance, and customer behaviour.
+servers:
+  - url: /api/v1
+paths:
+  /analytics/sales:
+    get:
+      summary: Get sales revenue report
+      description: Returns aggregated sales revenue broken down by day, week, or month for a specified date range. Includes total orders, gross revenue, and refunded amount. Requires ANALYTICS_READ role.
+      tags: [analytics, sales]
+      parameters:
+        - name: fromDate
+          in: query
+          required: true
+          description: Start of reporting period (ISO 8601 date)
+          schema:
+            type: string
+            format: date
+        - name: toDate
+          in: query
+          required: true
+          description: End of reporting period (ISO 8601 date)
+          schema:
+            type: string
+            format: date
+        - name: granularity
+          in: query
+          required: false
+          description: Time bucket for aggregation
+          schema:
+            type: string
+            enum: [daily, weekly, monthly]
+            default: daily
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Sales report for the date range
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  fromDate:
+                    type: string
+                  toDate:
+                    type: string
+                  granularity:
+                    type: string
+                  totalOrders:
+                    type: integer
+                  grossRevenue:
+                    type: number
+                  refundedAmount:
+                    type: number
+                  netRevenue:
+                    type: number
+                  buckets:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        period:
+                          type: string
+                        orders:
+                          type: integer
+                        revenue:
+                          type: number
+  /analytics/products/top:
+    get:
+      summary: Get top-selling products
+      description: Returns the top N products ranked by units sold or revenue within a date range. Use this to identify bestsellers for merchandising or inventory decisions.
+      tags: [analytics, products]
+      parameters:
+        - name: fromDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: toDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: rankBy
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [units_sold, revenue]
+            default: revenue
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 10
+            maximum: 100
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Top products with sales metrics
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    rank:
+                      type: integer
+                    productId:
+                      type: string
+                    productName:
+                      type: string
+                    unitsSold:
+                      type: integer
+                    revenue:
+                      type: number
+  /analytics/customers/metrics:
+    get:
+      summary: Get customer acquisition and retention metrics
+      description: Returns new customer count, repeat purchase rate, average order value, and churn rate for a date range. Requires ANALYTICS_READ role.
+      tags: [analytics, customers]
+      parameters:
+        - name: fromDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: toDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Customer metrics for the period
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  newCustomers:
+                    type: integer
+                  repeatPurchaseRate:
+                    type: number
+                    description: Percentage of customers who placed more than one order
+                  averageOrderValue:
+                    type: number
+                  churnRate:
+                    type: number
+                    description: Percentage of customers who did not purchase in the period vs previous
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

@@ -1,0 +1,129 @@
+openapi: "3.0.0"
+info:
+  title: Notification Service
+  version: "1.0.0"
+  description: Sends email and SMS notifications to customers and retrieves delivery status.
+servers:
+  - url: /api/v1
+paths:
+  /notifications/email:
+    post:
+      summary: Send a transactional email
+      description: Sends a templated transactional email to a customer. Use predefined template IDs — do not construct email HTML directly. Available templates include order_confirmation, shipment_update, password_reset, and welcome.
+      tags: [notifications, email]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [customerId, templateId]
+              properties:
+                customerId:
+                  type: string
+                  format: uuid
+                templateId:
+                  type: string
+                  enum: [order_confirmation, shipment_update, password_reset, welcome, promo_offer, order_cancelled]
+                variables:
+                  type: object
+                  description: Template-specific variables to inject (e.g. orderId, trackingNumber)
+                  additionalProperties:
+                    type: string
+      responses:
+        "202":
+          description: Email queued for delivery
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  notificationId:
+                    type: string
+                  status:
+                    type: string
+                    default: queued
+  /notifications/sms:
+    post:
+      summary: Send an SMS notification
+      description: Sends a short SMS message to the customer's registered phone number. Use for time-sensitive alerts only (e.g. delivery updates, OTP). Requires the customer to have a verified phone number.
+      tags: [notifications, sms]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [customerId, message]
+              properties:
+                customerId:
+                  type: string
+                  format: uuid
+                message:
+                  type: string
+                  maxLength: 160
+                  description: SMS body — max 160 characters
+      responses:
+        "202":
+          description: SMS queued for delivery
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  notificationId:
+                    type: string
+                  status:
+                    type: string
+        "422":
+          description: Customer has no verified phone number
+  /notifications/{notificationId}:
+    get:
+      summary: Get notification delivery status
+      description: Returns the delivery status of a previously sent notification. Useful for debugging failed deliveries. Email statuses include queued, sent, delivered, bounced. SMS statuses include queued, sent, delivered, failed.
+      tags: [notifications]
+      parameters:
+        - name: notificationId
+          in: path
+          required: true
+          description: UUID returned when the notification was created
+          schema:
+            type: string
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Notification delivery status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  notificationId:
+                    type: string
+                  type:
+                    type: string
+                    enum: [email, sms]
+                  customerId:
+                    type: string
+                  status:
+                    type: string
+                  sentAt:
+                    type: string
+                    format: date-time
+                  deliveredAt:
+                    type: string
+                    format: date-time
+                    nullable: true
+                  failureReason:
+                    type: string
+                    nullable: true
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

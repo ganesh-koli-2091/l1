@@ -1,0 +1,23 @@
+# Python virtual environment
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# Environment / secrets
+.env
+
+# ChromaDB (generated — run ingest.py to recreate)
+chroma_db/
+
+# Bad pip artifact
+=0.40.0
+
+# PowerPoint lock files
+~$*
+
+# OS
+.DS_Store
+Thumbs.db
