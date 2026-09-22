@@ -96,10 +96,15 @@ class APIDocsAssistant:
             )
             answer = resp.content[0].text
         else:
-            # GPT-5 is a reasoning model: must use max_completion_tokens, not max_tokens
+            # Azure OpenAI models use max_completion_tokens; Claude/others use max_tokens
+            token_param = (
+                "max_completion_tokens"
+                if "azure-openai" in LLM_MODEL or "gpt" in LLM_MODEL
+                else "max_tokens"
+            )
             resp = self.llm.chat.completions.create(
                 model=LLM_MODEL,
-                max_completion_tokens=MAX_COMPLETION_TOKENS,
+                **{token_param: MAX_COMPLETION_TOKENS},
                 messages=[
                     {"role": "system", "content": self.system_prompt},
                     {"role": "user", "content": user_content},

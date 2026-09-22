@@ -12,13 +12,12 @@ CHROMA_DIR = PROJECT_ROOT / "chroma_db"
 CLAUDE_MD_PATH = PROJECT_ROOT / "CLAUDE.md"
 
 EMBEDDING_MODEL = "all-MiniLM-L6-v2"
-LLM_MODEL = "@azure-openai-eus2/gpt-5"
+LLM_MODEL = "@azure-openai-eus2/gpt-4o-mini"
 COLLECTION_NAME = "api_docs"
-N_RESULTS = 5
-# GPT-5 is a reasoning model — it consumes internal reasoning tokens before
-# producing output. max_tokens is not supported; use max_completion_tokens
-# with a budget large enough for both reasoning + visible answer.
-MAX_COMPLETION_TOKENS = 4096
+N_RESULTS = 3
+# Reduced from 4096 — docs Q&A answers are 200–400 tokens max.
+# Lower budget means reasoning models finish much faster.
+MAX_COMPLETION_TOKENS = 800
 
 PORTKEY_BASE_URL = "https://portkeygateway.perficient.com/v1"
 PORTKEY_API_KEY = os.getenv("PORTKEY_API_KEY", "")
