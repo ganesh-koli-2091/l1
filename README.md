@@ -3,7 +3,7 @@
 **L1_Case05_Open_Choice_Prototype** — Perficient Global AI-First Academy
 
 A RAG-based assistant that answers plain-English questions about a microservices API
-and always cites the source endpoint. Built on ChromaDB + sentence-transformers + Claude.
+and always cites the source endpoint. Built on ChromaDB + sentence-transformers + GPT-4o-mini via Portkey.
 
 ---
 
@@ -33,7 +33,7 @@ pip install -r requirements.txt
 
 # 4. Set your API key
 copy .env.example .env
-# Open .env and replace: ANTHROPIC_API_KEY=your_anthropic_api_key_here
+# Open .env and replace: PORTKEY_API_KEY=your_portkey_api_key_here
 
 # 5. Ingest the documentation (one-time, ~30-60 seconds)
 python src/ingest.py

@@ -56,5 +56,5 @@ and service interaction patterns reflect real-world usage rather than toy exampl
 ## Sensitive data handling
 
 None. All data is synthetic. No API keys, credentials, PII, or real infrastructure details
-are present in any file. The `.env` file (which contains the Anthropic API key) is excluded
+are present in any file. The `.env` file (which contains the Portkey API key) is excluded
 from the data corpus and listed in `.gitignore`.

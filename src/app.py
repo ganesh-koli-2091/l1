@@ -123,9 +123,10 @@ def main() -> None:
                 st.error(
                     "**LLM gateway error** — retrieval worked but the language model call failed.\n\n"
                     f"```\n{llm_error[:400]}\n```\n\n"
-                    "**To fix:** The Perficient Portkey gateway (`@dsvertex/anthropic.claude-opus-4-8`) "
-                    "is returning a Vertex AI 403. Contact your AI Academy team, or add your own "
-                    "`ANTHROPIC_API_KEY` to `.env` and set `USE_DIRECT_ANTHROPIC=true`."
+                    "**To fix:** Check that `PORTKEY_API_KEY` is set in `.env` and that the model "
+                    "`@azure-openai-eus2/gpt-4o-mini` is accessible via the Portkey gateway. "
+                    "Contact your AI Academy team, or add your own `ANTHROPIC_API_KEY` to `.env` "
+                    "and set `USE_DIRECT_ANTHROPIC=true`."
                 )
                 answer = "_Gateway unavailable — see error above._"
             else:
