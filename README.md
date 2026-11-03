@@ -73,7 +73,11 @@ api-docs-assistant/
 │   ├── config.py                ← Paths, model names, env vars
 │   ├── ingest.py                ← Load → Chunk → Embed → Store
 │   ├── query.py                 ← Embed → Retrieve → LLM → Return
+│   ├── retrieve_only.py         ← Retrieval diagnostic (no LLM key needed)
 │   └── app.py                   ← Streamlit chat UI
+│
+├── tests/
+│   └── test_query.py            ← Deterministic pipeline tests (ingest count, retrieval)
 │
 ├── evidence/
 │   ├── before_context_output.md ← 3 queries without CLAUDE.md
@@ -85,7 +89,8 @@ api-docs-assistant/
     ├── failure_analysis.md
     ├── improvement_log.md
     ├── pitch_slide.md
-    └── effort_statement.md
+    ├── effort_statement.md
+    └── reflection.md            ← Post-evaluation reflection (resubmission)
 ```
 
 ---
@@ -93,7 +98,7 @@ api-docs-assistant/
 ## What the system covers
 
 - **10 services:** Order, Customer, Product, Payment, Inventory, Notification, Auth, Shipping, Cart, Analytics
-- **~38 endpoints** across all services
+- **40 endpoints** across all services
 - **4 notes:** architecture overview, common patterns, authentication guide, error handling
 
 ---
@@ -123,3 +128,6 @@ api-docs-assistant/
 | One measured improvement | docs/improvement_log.md |
 | Pitch slide | docs/pitch_slide.md |
 | Declared effort | docs/effort_statement.md |
+| Reflection (resubmission) | docs/reflection.md |
+| Deterministic tests | tests/test_query.py |
+| Retrieval-only diagnostic | src/retrieve_only.py |

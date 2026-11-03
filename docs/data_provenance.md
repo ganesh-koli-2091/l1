@@ -4,7 +4,7 @@
 
 **10 OpenAPI 3.0 YAML files** representing a fictional e-commerce microservices platform called
 ShopCo. Each file describes one service (Order, Customer, Product, Payment, Inventory,
-Notification, Auth, Shipping, Cart, Analytics) with 3–5 endpoints each (~38 total endpoints).
+Notification, Auth, Shipping, Cart, Analytics) with 3–5 endpoints each (40 total endpoint operations).
 
 **4 Markdown architecture notes** covering:
 - Service map and inter-service communication flows
@@ -34,7 +34,7 @@ and service interaction patterns reflect real-world usage rather than toy exampl
 - All possible endpoint patterns (no GraphQL, no WebSocket, no batch endpoints)
 - Error cases beyond standard HTTP status codes
 - Versioned or deprecated endpoints
-- Any API with more than ~100 endpoints (this corpus has 38 endpoints + 4 note files)
+- Any API with more than ~100 endpoints (this corpus has 40 endpoints + 4 note files)
 
 ## Known limitations
 
@@ -50,7 +50,7 @@ and service interaction patterns reflect real-world usage rather than toy exampl
 
 4. **English only.** All content is English. Queries in other languages will not match well.
 
-5. **38 endpoints is a small corpus.** A real microservices platform might have 200+ endpoints.
+5. **40 endpoints is a small corpus.** A real microservices platform might have 200+ endpoints.
    Retrieval performance may degrade as corpus grows and more endpoints share similar terminology.
 
 ## Sensitive data handling

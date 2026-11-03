@@ -44,10 +44,10 @@ in the retrieved chunks.
 
 **Root cause:** "Rate limit" and "payment endpoint" are semantically distant in the embedding
 space. The retrieval query has to choose between the payment endpoint chunk (high path
-similarity) and the error-handling notes chunk (has rate limit content). With N=5 results,
-only 2 out of 5 test runs retrieved the rate-limiting section.
+similarity) and the error-handling notes chunk (has rate limit content). With N=3 results,
+only 1 out of 5 test runs retrieved the rate-limiting section.
 
-**Fix needed:** Increase N_RESULTS from 5 to 8 for queries containing "rate limit". Or add
+**Fix needed:** Increase N_RESULTS from 3 to 6 for queries containing "rate limit". Or add
 rate limit information directly to each endpoint's YAML spec (the right fix architecturally).
 
 ---

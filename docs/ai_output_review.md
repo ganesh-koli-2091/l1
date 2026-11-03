@@ -36,8 +36,9 @@ contains "Order Service".
 match on "Order Service" will sometimes pass and sometimes fail depending on how the model
 phrases the answer.
 
-**Correction made:** Tests were restructured to test the deterministic parts of the pipeline:
-- `ingest.py`: assert document count after ingestion equals expected value
+**Correction made:** Tests were restructured to test the deterministic parts of the pipeline
+(see `tests/test_query.py`):
+- `ingest.py`: assert document count after ingestion equals 69 (40 endpoints + 29 note sections)
 - `query.py`: assert that retrieved `sources` contain the correct source filename
   (retrieval is deterministic given the same corpus and embedding model)
 - `query.py`: assert that sources list is non-empty and each source has `metadata.source`
@@ -77,11 +78,12 @@ beyond Streamlit's built-in session.
 internal batch size limit. For larger corpora this would silently fail or error.
 
 **Correction made:** Added batching at 100 documents per `collection.add()` call with a
-progress indicator. Verified that the full corpus (42 chunks) ingests in one batch correctly.
+progress indicator. Verified that the full corpus (69 chunks) ingests in one batch correctly.
 
 **Latency observation:** On first run, sentence-transformers downloads the all-MiniLM-L6-v2
-model (~80 MB). Subsequent runs use the cached model. Total ingest time for 42 chunks is
-approximately 8 seconds. Query latency (retrieve + LLM call) is approximately 3–6 seconds.
+model (~80 MB). Subsequent runs use the cached model. Total ingest time for 69 chunks is
+approximately 8–10 seconds. Query latency (retrieve + LLM call via Portkey) is approximately
+35–40 seconds; retrieval alone (without LLM) is under 1 second.
 
 **Not optimised:** The embedding model runs on CPU. For a production deployment with hundreds
 of concurrent users, GPU inference or a cloud embedding API would be required.

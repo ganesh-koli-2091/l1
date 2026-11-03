@@ -61,8 +61,8 @@ def main() -> None:
         st.header("About")
         st.markdown(
             "**Corpus:** 10 OpenAPI YAML specs + 4 architecture notes  \n"
-            "**Retrieval:** ChromaDB + sentence-transformers (all-MiniLM-L6-v2)  \n"
-            "**LLM:** Anthropic Claude claude-opus-4-5  \n"
+            "**Retrieval:** ChromaDB + sentence-transformers (all-MiniLM-L6-v2), top 3 chunks  \n"
+            "**LLM:** GPT-4o-mini via Portkey gateway  \n"
             "**Context:** CLAUDE.md enforces structured, cited answers"
         )
 

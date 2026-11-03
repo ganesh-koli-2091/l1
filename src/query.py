@@ -18,6 +18,8 @@ from config import (
     validate_config,
 )
 
+MAX_QUERY_LENGTH = 500
+
 
 class APIDocsAssistant:
     def __init__(self) -> None:
@@ -59,6 +61,16 @@ class APIDocsAssistant:
             answer (str): LLM response with citations
             sources (list[dict]): retrieved chunks with metadata and similarity scores
         """
+        if len(question) > MAX_QUERY_LENGTH:
+            import warnings
+            warnings.warn(
+                f"Query truncated to {MAX_QUERY_LENGTH} characters (was {len(question)}). "
+                "Production use should return a 400 error instead.",
+                UserWarning,
+                stacklevel=2,
+            )
+            question = question[:MAX_QUERY_LENGTH]
+
         results = self.collection.query(
             query_texts=[question],
             n_results=N_RESULTS,

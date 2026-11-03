@@ -29,9 +29,9 @@ Embed query (sentence-transformers, runs locally)
        ↓
 Search ChromaDB (10 OpenAPI specs + 4 architecture notes)
        ↓
-Top 5 most relevant endpoint chunks retrieved
+Top 3 most relevant endpoint chunks retrieved
        ↓
-Claude claude-opus-4-5 generates structured cited answer
+GPT-4o-mini (via Portkey gateway) generates structured cited answer
        ↓
 Answer + source panel shown in Streamlit UI
 ```
@@ -40,10 +40,9 @@ Answer + source panel shown in Streamlit UI
 
 ## What it covers today
 
-- 10 microservices | 38 endpoints | 4 architecture notes
-- Answers in under 6 seconds
+- 10 microservices | 40 endpoints | 4 architecture notes | 69 indexed chunks
 - Every answer cites the source file and endpoint
-- Runs fully local except the Claude API call
+- Runs fully local except the LLM call (GPT-4o-mini via Portkey gateway)
 
 ---
 
