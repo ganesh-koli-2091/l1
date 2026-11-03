@@ -11,7 +11,7 @@ and always cites the source endpoint. Built on ChromaDB + sentence-transformers 
 
 ### Prerequisites
 - Python 3.10+
-- An Anthropic API key ([get one here](https://console.anthropic.com))
+- A Portkey API key (provided by Perficient AI Academy — set as `PORTKEY_API_KEY` in `.env`)
 
 ### Steps
 

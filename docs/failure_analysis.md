@@ -59,7 +59,7 @@ rate limit information directly to each endpoint's YAML spec (the right fix arch
 **Expected:** A numbered list: cart → inventory reserve → checkout trigger → order created →
 payment processed → shipment created → confirmation email.
 
-**Actual output:** The retrieval surfaces 5 chunks from various services but none of them
+**Actual output:** The retrieval surfaces 3 chunks from various services but none of them
 describe the full flow. The architecture-overview.md section "Happy-Path Order Flow" is the
 right source but it ranks below individual endpoint chunks because it uses narrative language
 rather than the keyword "checkout".
