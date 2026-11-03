@@ -15,16 +15,18 @@ different ports, and Slack DMs just to find which endpoint to call and what para
 **Domain:** Technology consulting / internal developer tooling
 **User:** Junior to mid-level backend developer onboarding to a microservices platform
 **Problem:** No single place to ask "which endpoint handles X?" and get a cited, correct answer
-**Definition of success:** A developer can ask a plain-English question about the API and receive,
-in under 10 seconds, the exact endpoint path, HTTP method, required parameters, and
-authentication requirements — with the source document cited.
+**Definition of success:** A developer can ask a plain-English question about the API and receive
+the exact endpoint path, HTTP method, required parameters, and authentication requirements —
+with the source document cited. Retrieval (ChromaDB vector search) must complete in under 1
+second. End-to-end response time depends on the LLM gateway; measured at approximately 35–40 s
+via the Portkey enterprise gateway (see docs/ai_output_review.md — Dimension 4).
 
 ---
 
 ## Scope
 
 ### In scope
-- RAG pipeline over synthetic OpenAPI YAML specs (10 services, ~80 endpoints)
+- RAG pipeline over synthetic OpenAPI YAML specs (10 services, 40 endpoint operations)
 - RAG pipeline over architecture notes in Markdown (4 documents)
 - Streamlit chat UI for querying
 - CLAUDE.md context artifact with before/after evidence
@@ -55,7 +57,7 @@ authentication requirements — with the source document cited.
 
 | ID   | Requirement |
 |------|-------------|
-| NFR1 | Query latency under 10 seconds (including LLM call) |
+| NFR1 | Retrieval under 1 second (measured); LLM call latency depends on gateway (measured 35–40 s via Portkey) |
 | NFR2 | Runs locally on a developer laptop with no cloud infrastructure except the LLM API |
 | NFR3 | Ingest pipeline completes in under 60 seconds for the full corpus |
 | NFR4 | No PII in the dataset — all data is synthetic |
@@ -82,6 +84,6 @@ The problem here is point-in-time retrieval by a human, which is a RAG problem.
 |-----------------|-------------------------------|----------------------|
 | Vector store    | ChromaDB (local, file-based)  | Pinecone (requires cloud account) |
 | Embeddings      | sentence-transformers all-MiniLM-L6-v2 | OpenAI text-embedding-3-small (costs money per ingest) |
-| LLM             | Anthropic Claude claude-opus-4-5 | GPT-4o (OpenAI; team has Anthropic access) |
+| LLM             | GPT-4o-mini via Portkey gateway (Perficient) | Anthropic Claude (higher cost per token via Portkey) |
 | UI              | Streamlit                     | React (too much boilerplate for a prototype) |
 | Data format     | OpenAPI 3.0 YAML + Markdown   | JSON API specs (less human-readable) |

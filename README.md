@@ -89,6 +89,7 @@ api-docs-assistant/
     ├── failure_analysis.md
     ├── improvement_log.md
     ├── pitch_slide.md
+    ├── capstone_presentation.pptx ← Slide deck (PowerPoint)
     ├── effort_statement.md
     └── reflection.md            ← Post-evaluation reflection (resubmission)
 ```
@@ -126,7 +127,8 @@ api-docs-assistant/
 | AI output review | docs/ai_output_review.md |
 | Failure analysis | docs/failure_analysis.md |
 | One measured improvement | docs/improvement_log.md |
-| Pitch slide | docs/pitch_slide.md |
+| Pitch slide (markdown source) | docs/pitch_slide.md |
+| Pitch slide (PowerPoint deck) | docs/capstone_presentation.pptx |
 | Declared effort | docs/effort_statement.md |
 | Reflection (resubmission) | docs/reflection.md |
 | Deterministic tests | tests/test_query.py |

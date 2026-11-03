@@ -80,7 +80,7 @@ Tags: orders
 Average chunk character length increased from ~120 to ~480 characters. This increases
 embedding computation time during ingest from ~6 seconds to ~8 seconds. It also means
 each retrieved chunk consumes more LLM input tokens (~120 tokens → ~480 tokens per chunk),
-raising the cost of each query by approximately $0.003 per query at current Claude pricing.
+raising the cost of each query by approximately $0.001–0.003 per query at current GPT-4o-mini pricing via Portkey.
 
 For a prototype serving a small internal team, this tradeoff is correct — accuracy > cost.
 For a production system with 10,000+ queries per day, we would evaluate whether a

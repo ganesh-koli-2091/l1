@@ -58,7 +58,7 @@ data, no PII.
 ## Phase 3 — Query Pipeline
 
 1. Embed the user's question using the same sentence-transformer model
-2. Retrieve top-5 most similar chunks from ChromaDB
+2. Retrieve top-3 most similar chunks from ChromaDB (N_RESULTS=3 in config.py)
 3. Format retrieved chunks as context block
 4. Call Anthropic Claude with system prompt (from CLAUDE.md) + context + user question
 5. Return LLM answer + source list to UI

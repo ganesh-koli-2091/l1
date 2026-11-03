@@ -12,7 +12,7 @@ The same 3 questions were re-run with CLAUDE.md loaded — see after_context_out
 
 ## Query 1: "Which endpoint do I call to get a customer's order history?"
 
-**Retrieved chunks:** Same 5 chunks as after (retrieval is identical — only the system prompt differs)
+**Retrieved chunks:** Same 3 chunks as after (N_RESULTS=3; retrieval is identical — only the system prompt differs)
 
 **LLM Response (no CLAUDE.md):**
 

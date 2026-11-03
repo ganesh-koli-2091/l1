@@ -24,7 +24,7 @@ because it added complexity (n8n setup, webhook configuration) without adding to
 RAG demonstration. The ingestion pipeline is designed to be re-run manually when specs change,
 which is sufficient for the prototype scope.
 
-**Cut: Per-endpoint test assertions.** I planned to write a test for each of the 38 endpoints,
+**Cut: Per-endpoint test assertions.** I planned to write a test for each of the 40 endpoints,
 asserting that a natural-language query about each endpoint returns it as a top-3 result.
 This was cut because it requires a running ChromaDB instance in CI and the value is low for
 a local prototype. The 5 failure-analysis queries serve as the manual test suite.
